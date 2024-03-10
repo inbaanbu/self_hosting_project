@@ -21,12 +21,19 @@ jobs:
       - name: Build Project
         run: mvn clean install -DskipTests
 
-      - name: Install SSH key
+      - name: Configure SSH
         run: |
-         mkdir -p ~/.ssh/
-         echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-         chmod 600 ~/.ssh/id_rsa
-         ssh-keyscan -H "${{ secrets.EC2_HOSTNAME }}" >> ~/.ssh/known_hosts
+          mkdir -p ~/.ssh/
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+          ssh-keyscan -H github.com >> ~/.ssh/known_hosts
+
+      - name: Find JAR File
+        run: |
+          jar_file=$(ls ./target/*.jar)
+          echo "Found JAR file: $jar_file"
+          echo "JAR_FILE=$jar_file" > env.list
 
       - name: Deploy to EC2
         run: |
