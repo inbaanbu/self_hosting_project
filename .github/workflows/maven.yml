@@ -37,4 +37,4 @@ jobs:
 
     
       - name: Deploy to EC2
-        run: ssh -i ~/.ssh/id_rsa ec2-user@${{ secrets.EC2_HOST }} 'bash -s' < path/to/deploy.sh
+        run: ssh -i ~/.ssh/id_rsa @${{ secrets.EC2_HOST }} 'bash -s' < path/to/deploy.sh
