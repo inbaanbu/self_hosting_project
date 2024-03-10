@@ -9,28 +9,31 @@ jobs:
     runs-on: [ubuntu-latest]
 
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v2
-
-      - name: Configure SSH
-        run: |
+       - name: Checkout source
+         uses: actions/checkout@v3
+       - name: Setup Java
+         uses: actions/setup-java@v3
+         with:
+          distribution: 'temurin'
+          java-version: '17'
+       - name: Build Project
+         run: mvn clean install -DskipTests
+       - name: Configure SSH
+         run: |
            mkdir -p ~/.ssh/
            echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
            chmod 600 ~/.ssh/id_rsa
            ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
            ssh-keyscan -H github.com >> ~/.ssh/known_hosts
 
-      - name: Build Project
-        run: mvn clean install -DskipTests
-
-      - name: Find JAR File
-        run: |
+       - name: Find JAR File
+         run: |
           jar_file=$(ls ./target/*.jar)
           echo "Found JAR file: $jar_file"
           echo "::set-env name=JAR_FILE::$jar_file"
 
-      - name: Copy JAR to EC2
-        run: scp -o StrictHostKeyChecking=no ${{ env.JAR_FILE }} ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:/path/on/ec2/
+       - name: Copy JAR to EC2
+         run: scp -o StrictHostKeyChecking=no ${{ env.JAR_FILE }} ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:/path/on/ec2/
 
-      - name: SSH into EC2 and Restart Application
-        run: ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} -p ${{ secrets.EC2_SSH_PORT }} 'sudo systemctl restart self_hosting_project.service'
+       - name: SSH into EC2 and Restart Application
+         run: ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} -p ${{ secrets.EC2_SSH_PORT }} 'sudo systemctl restart self_hosting_project.service'
