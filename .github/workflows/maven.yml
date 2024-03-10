@@ -36,8 +36,9 @@ jobs:
           echo "JAR_FILE=$jar_file" > env.list
 
       - name: Copy JAR to EC2
-        run: scp -o StrictHostKeyChecking=no * ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:/path/on/ec2/
-
+        run: |
+          scp -o StrictHostKeyChecking=no ${{ env.JAR_FILE }} ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:/path/on/ec2/
+          
       - name: SSH into EC2 and Restart Application
         run: |
           ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} -p ${{ secrets.EC2_SSH_PORT }} 'sudo systemctl restart self_hosting_project.service'
