@@ -35,12 +35,7 @@ jobs:
           echo "Found JAR file: $jar_file"
           echo "JAR_FILE=$jar_file" > env.list
 
+    
       - name: Deploy to EC2
         run: |
-         ssh -i ~/.ssh/id_rsa ec2-user@${{ secrets.EC2_HOST }} 'bash -s' << 'EOF'
-          # Start of the script
-          # Place your deployment commands here
-         echo "Deploying the application..."
-         ./deploy.sh
-         # End of the script
-         EOF
+         ssh -i ~/.ssh/id_rsa ec2-user@${{ secrets.EC2_HOST }} 'bash -s' < deploy.sh
