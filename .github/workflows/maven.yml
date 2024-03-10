@@ -21,26 +21,23 @@ jobs:
       - name: Build Project
         run: mvn clean install -DskipTests
 
-      - name: Configure SSH
-        run: |
-          mkdir -p ~/.ssh/
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
-          ssh-keyscan -H github.com >> ~/.ssh/known_hosts
-
-      - name: Find JAR File
-        run: |
-          jar_file=$(ls ./target/*.jar)
-          echo "Found JAR file: $jar_file"
-          echo "JAR_FILE=$jar_file" > env.list
-
       - name: Copy JAR to EC2
-        run: |
-          scp -o StrictHostKeyChecking=no ${{ env.JAR_FILE }} ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }}:/path/on/ec2/
-          
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.EC2_SSH_PORT }}
+          source: "target/*.jar"
+          target: "/path/on/ec2/"
+
       - name: SSH into EC2 and Restart Application
-        run: |
-          ssh -o StrictHostKeyChecking=no ${{ secrets.EC2_USERNAME }}@${{ secrets.EC2_HOST }} -p ${{ secrets.EC2_SSH_PORT }} 'sudo systemctl restart self_hosting_project.service'
-        env:
-          JAR_FILE: ${{ secrets.JAR_FILE }}
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.EC2_SSH_PORT }}
+          script: |
+            sudo systemctl stop self_hosting_project.service
+            sudo systemctl start self_hosting_project.service
