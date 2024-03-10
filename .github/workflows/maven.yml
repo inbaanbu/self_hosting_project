@@ -37,7 +37,7 @@ jobs:
 
       - name: Deploy to EC2
         run: |
-         ssh -i ~/.ssh/id_rsa ec2-user@${{ secrets.EC2_HOSTNAME }} 'bash -s' << 'EOF'
+         ssh -i ~/.ssh/id_rsa ec2-user@${{ secrets.EC2_HOST }} 'bash -s' << 'EOF'
           # Start of the script
           # Place your deployment commands here
          echo "Deploying the application..."
